@@ -14,11 +14,7 @@ public class PostgresDB implements IDB {
     private static final String PASSWORD = "postgres"; // change if needed
 
     @Override
-    public Connection getConnection() {
-        try {
-            return DriverManager.getConnection(URL, USER, PASSWORD);
-        } catch (SQLException e) {
-            throw new RuntimeException("Cannot connect to PostgreSQL", e);
-        }
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }
