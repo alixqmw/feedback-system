@@ -18,7 +18,7 @@ public class PostgresDB implements IDB {
         try {
             return DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to connect to PostgreSQL", e);
+            throw new RuntimeException("Cannot connect to PostgreSQL", e);
         }
     }
 }
