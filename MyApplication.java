@@ -1,77 +1,44 @@
 package com.company;
 
-import com.company.controllers.interfaces.IUserController;
-
-import java.util.InputMismatchException;
+import com.company.controllers.interfaces.IFeedbackController;
 import java.util.Scanner;
 
 public class MyApplication {
     private final Scanner scanner = new Scanner(System.in);
+    private final IFeedbackController controller;
 
-    private final IUserController controller;
-
-    public MyApplication(IUserController controller) {
+    public MyApplication(IFeedbackController controller) {
         this.controller = controller;
-    }
-
-    private void mainMenu() {
-        System.out.println();
-        System.out.println("Welcome to My Application");
-        System.out.println("Select option:");
-        System.out.println("1. Get all users");
-        System.out.println("2. Get user by id");
-        System.out.println("3. Create user");
-        System.out.println("0. Exit");
-        System.out.println();
-        System.out.print("Enter option (1-3): ");
     }
 
     public void start() {
         while (true) {
-            mainMenu();
+            System.out.println("\n1. All users\n2. User by id\n3. Create user\n4. All reviews\n5. Create review\n0. Exit");
             try {
-                int option = scanner.nextInt();
-
-                switch (option) {
-                    case 1: getAllUsersMenu(); break;
-                    case 2: getUserByIdMenu(); break;
-                    case 3: createUserMenu(); break;
-                    default: return;
+                int opt = scanner.nextInt();
+                if (opt == 0) break;
+                switch (opt) {
+                    case 1 -> System.out.println(controller.getAllUsers());
+                    case 2 -> {
+                        System.out.print("ID: ");
+                        System.out.println(controller.getUser(scanner.nextInt()));
+                    }
+                    case 3 -> {
+                        System.out.print("Name: ");
+                        System.out.println(controller.createUser(scanner.next()));
+                    }
+                    case 4 -> System.out.println(controller.getAllReviews());
+                    case 5 -> {
+                        System.out.print("Name: "); String n = scanner.next();
+                        System.out.print("Rating: "); int r = scanner.nextInt();
+                        System.out.print("Comment: "); scanner.nextLine();
+                        System.out.println(controller.createReview(n, r, scanner.nextLine()));
+                    }
                 }
-            } catch (InputMismatchException e) {
-                System.out.println("Input must be integer: " + e);
-                scanner.nextLine(); // to ignore incorrect input
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                System.out.println("Error: " + e.getMessage());
+                scanner.nextLine();
             }
-
-            System.out.println("*************************");
         }
-    }
-
-    public void getAllUsersMenu() {
-        String response = controller.getAllUsers();
-        System.out.println(response);
-    }
-
-    public void getUserByIdMenu() {
-        System.out.println("Please enter id");
-
-        int id = scanner.nextInt();
-
-        String response = controller.getUser(id);
-        System.out.println(response);
-    }
-
-    public void createUserMenu() {
-        System.out.println("Please enter name");
-        String name = scanner.next();
-        System.out.println("Please enter surname");
-        String surname = scanner.next();
-        System.out.println("Please enter gender (male/female)");
-        String gender = scanner.next();
-
-        String response = controller.createUser(name, surname, gender);
-        System.out.println(response);
     }
 }

@@ -1,7 +1,7 @@
 package com.company;
 
-import com.company.controllers.UserController;
-import com.company.controllers.interfaces.IUserController;
+import com.company.controllers.FeedbackController;
+import com.company.controllers.interfaces.IFeedbackController;
 import com.company.data.PostgresDB;
 import com.company.data.interfaces.IDB;
 import com.company.repositories.UserRepository;
@@ -14,7 +14,7 @@ public class Main {
         // And changing DB should not affect to whole code
         IDB db = new PostgresDB("jdbc:postgresql://localhost:5432", "postgres", "0000", "somedb");
         IUserRepository repo = new UserRepository(db);
-        IUserController controller = new UserController(repo);
+        IFeedbackController controller = new FeedbackController(repo);
 
         MyApplication app = new MyApplication(controller);
 
