@@ -2,7 +2,6 @@ package controllers;
 
 import controllers.interfaces.ISomethingController;
 import models.Something;
-import models.User;
 import repositories.interfaces.ISomethingRepository;
 import java.util.List;
 
