@@ -11,8 +11,8 @@ public class Something {
     }
 
     public Something(int id, String name, String feedback) {
-        this.id = id;
         this(name, feedback);
+        this.id = id;
     }
 
     public int getId() {
