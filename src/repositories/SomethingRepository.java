@@ -1,88 +1,96 @@
 package repositories;
 
-import models.Something;
 import data.interfaces.IDB;
-import models.User;
+import models.Something;
 import repositories.interfaces.ISomethingRepository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SomethingRepository implements ISomethingRepository {
+public abstract class SomethingRepository implements ISomethingRepository {
     private final IDB db;
 
-    public SomethingRepository(IDB db) { this.db = db; }
+    public SomethingRepository(IDB db) {
+        this.db = db;
+    }
 
+    @Override
     public List<Something> getAllSomethings() {
-        Connection con = null;
+        String sql = "SELECT id, name, feedback FROM something";
+        List<Something> somethings = new ArrayList<>();
 
-        try {
-            con = db.getConnection();
-            String sql = "SELECT id,name,feedback FROM something";
-            Statement st = con.createStatement();
+        try (Connection con = db.getConnection();
+             Statement st = con.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
 
-            ResultSet rs = st.executeQuery(sql);
-            List<Something> Somethings = new ArrayList<>();
             while (rs.next()) {
-                Something Something = new Something(rs.getInt("id"),
+                Something something = new Something(
+                        rs.getInt("id"),
                         rs.getString("name"),
                         rs.getString("feedback")
                 );
-
-                Somethings.add(Something);
+                somethings.add(something);
             }
 
-            return Somethings;
         } catch (SQLException e) {
             System.out.println("sql error: " + e.getMessage());
         }
 
-        return null;
+        return somethings;
     }
 
-    public Something getSomething(int id) {
-        Connection con = null;
+    @Override
+    public List<Something> getSomethingsByCategory(int categoryId) {
+        return List.of();
+    }
 
-        try {
-            con = db.getConnection();
-            String sql = "SELECT id,name, feedback FROM something WHERE id = ?";
-            PreparedStatement st = con.prepareStatement(sql);
+    @Override
+    public boolean deleteSomething(int id, String userRole) {
+        return false;
+    }
+
+    @Override
+    public Something getSomething(int id) {
+        String sql = "SELECT id, name, feedback FROM something WHERE id=?";
+
+        try (Connection con = db.getConnection();
+             PreparedStatement st = con.prepareStatement(sql)) {
 
             st.setInt(1, id);
 
-            ResultSet rs = st.executeQuery();
-            if (rs.next()) {
-                return new Something(rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("feedback")
-                );
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    return new Something(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            rs.getString("feedback")
+                    );
+                }
             }
+
         } catch (SQLException e) {
             System.out.println("sql error: " + e.getMessage());
         }
 
         return null;
     }
+
     @Override
     public boolean insertFeedback(String feedback, int id) {
-        Connection con = null;
+        String sql = "UPDATE something SET feedback=? WHERE id=?";
 
-        try {
-            con = db.getConnection();
-            String sql = "UPDATE something SET feedback=? WHERE id=?";
-            PreparedStatement st = con.prepareStatement(sql);
+        try (Connection con = db.getConnection();
+             PreparedStatement st = con.prepareStatement(sql)) {
 
             st.setString(1, feedback);
             st.setInt(2, id);
 
-            st.executeUpdate();
+            return st.executeUpdate() > 0;
 
-            return true;
         } catch (SQLException e) {
             System.out.println("sql error: " + e.getMessage());
+            return false;
         }
-
-        return false;
     }
 }
