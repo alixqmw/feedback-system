@@ -1,47 +1,61 @@
-import controllers.SomethingController;
-import controllers.UserController;
-import controllers.interfaces.ISomethingController;
-import controllers.interfaces.IUserController;
 import data.PostgresDB;
-import data.interfaces.IDB;
-import models.Something;
-import repositories.SomethingRepository;
+import dto.FullFeedbackDTO;
+import dto.UserDTO;
+import repositories.FeedbackRepository;
 import repositories.UserRepository;
-import repositories.interfaces.ISomethingRepository;
-import repositories.interfaces.IUserRepository;
-
-import java.util.List;
+import services.AuthService;
+import services.FeedbackService;
 
 public class Main {
-
     public static void main(String[] args) {
-
-        IDB db = new PostgresDB(
-                "jdbc:postgresql://localhost:5432",
+        PostgresDB db = PostgresDB.getInstance(
+                "jdbc:postgresql://localhost:5432/feedback_db",
                 "postgres",
-                "0000",
-                "feedback_system"
+                "postgres"
         );
 
-        IUserRepository userRepo = new UserRepository(db);
-        ISomethingRepository somethingRepo = new SomethingRepository(db) {
-            @Override
-            public List<Something> getSomethingsByCategory(int categoryId) {
-                return List.of();
-            }
+        UserRepository userRepo = new UserRepository(db);
+        FeedbackRepository feedbackRepo = new FeedbackRepository(db);
 
-            @Override
-            public boolean deleteSomething(int id, String userRole) {
-                return false;
-            }
-        };
+        AuthService auth = new AuthService(userRepo);
+        FeedbackService feedbackService = new FeedbackService(feedbackRepo);
 
-        IUserController userController = new UserController(userRepo);
-        ISomethingController somethingController = new SomethingController(somethingRepo);
+        // login as normal user
+        UserDTO user = auth.login("user1@mail.com", "1234");
+        System.out.println("Logged in: " + user);
 
-        MyApplication app = new MyApplication(userController, somethingController);
-        app.start();
+        // create feedback
+        int newId = feedbackService.createFeedback(user, "Login problem", "I cannot login sometimes", 1);
+        System.out.println("Created feedback id: " + newId);
 
-        db.close();
+        // add comment
+        boolean c1 = feedbackService.addComment(user, newId, "Please fix ASAP");
+        System.out.println("Comment added: " + c1);
+
+        // get full feedback (JOIN)
+        FullFeedbackDTO full = feedbackService.getFull(newId);
+        System.out.println("\nFULL FEEDBACK:");
+        System.out.println(full);
+
+        // try change status as USER (should fail)
+        boolean statusUser = feedbackService.changeStatus(user, newId, "DONE");
+        System.out.println("\nUSER change status result: " + statusUser);
+
+        // login as admin
+        UserDTO admin = auth.login("admin@mail.com", "1234");
+        System.out.println("\nLogged in: " + admin);
+
+        // change status as ADMIN (should work)
+        boolean statusAdmin = feedbackService.changeStatus(admin, newId, "IN_PROGRESS");
+        System.out.println("ADMIN change status result: " + statusAdmin);
+
+        // reload full
+        FullFeedbackDTO full2 = feedbackService.getFull(newId);
+        System.out.println("\nUPDATED FULL FEEDBACK:");
+        System.out.println(full2);
+
+        // lambda example
+        System.out.println("\nManager comments count: " + feedbackService.countManagerComments(full2));
     }
 }
+

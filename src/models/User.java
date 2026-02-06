@@ -1,54 +1,23 @@
 package models;
 
 public class User {
-    private int id;
-    private String name;
-    private String password;
+    private final int id;
+    private final String name;
+    private final String email;
+    private final String password;
+    private final Role role;
 
-    public User() {
-
-    }
-
-    public User(String name, String password) {
-        setname(name);
-        setPassword(password);
-    }
-
-    public User(int id, String name, String password) {
-        this(name, password);
-        setId(id);
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
+    public User(int id, String name, String email, String password, Role role) {
         this.id = id;
-    }
-
-    public String getname() {
-        return name;
-    }
-
-    public void setname(String name) {
         this.name = name;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
+        this.email = email;
         this.password = password;
+        this.role = role;
     }
-    
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", password='" + password + '\'';
-    }
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public String getEmail() { return email; }
+    public String getPassword() { return password; }
+    public Role getRole() { return role; }
 }

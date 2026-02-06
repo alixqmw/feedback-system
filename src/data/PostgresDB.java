@@ -1,85 +1,28 @@
 package data;
 
-import data.interfaces.IDB;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
-import java.sql.*;
+public class PostgresDB {
+    private static PostgresDB instance;
 
-public class PostgresDB implements IDB {
-    private String host;
-    private String name;
-    private String password;
-    private String dbName;
+    private final String url;
+    private final String user;
+    private final String password;
 
-    private Connection connection;
-
-    public PostgresDB(String host, String name, String password, String dbName) {
-        setHost(host);
-        setname(name);
-        setPassword(password);
-        setDbName(dbName);
-    }
-
-    @Override
-    public Connection getConnection() {
-        String connectionUrl = host + "/" + dbName;
-        try {
-            if (connection != null && !connection.isClosed()) {
-                return connection;
-            }
-
-            // Here we load the driver’s class file into memory at the runtime
-            Class.forName("org.postgresql.Driver");
-
-            // Establish the connection
-            connection = DriverManager.getConnection(connectionUrl, name, password);
-
-            return connection;
-        } catch (Exception e) {
-            System.out.println("failed to connect to postgres: " + e.getMessage());
-
-            return null;
-        }
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public String password() {
-        return name;
-    }
-
-    public void setname(String name) {
-        this.name = name;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
+    private PostgresDB(String url, String user, String password) {
+        this.url = url;
+        this.user = user;
         this.password = password;
     }
 
-    public String getDbName() {
-        return dbName;
+    public static PostgresDB getInstance(String url, String user, String password) {
+        if (instance == null) instance = new PostgresDB(url, user, password);
+        return instance;
     }
 
-    public void setDbName(String dbName) {
-        this.dbName = dbName;
-    }
-
-    public void close() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException ex) {
-                System.out.println("Connection close error: " + ex.getMessage());
-            }
-        }
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, user, password);
     }
 }

@@ -9,7 +9,7 @@ public interface ISomethingRepository {
 
     boolean insertFeedback(String feedback, int id);
 
-    Optional<Something> getSomething(int id);
+    Something getSomething(int id);
 
     List<Something> getAllSomethings();
 

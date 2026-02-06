@@ -1,96 +1,47 @@
 package repositories;
 
-import data.interfaces.IDB;
+import data.PostgresDB;
+import models.Role;
 import models.User;
-import repositories.interfaces.IUserRepository;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
-public class UserRepository implements IUserRepository {
-    private final IDB db;
+public class UserRepository {
+    private final PostgresDB db;
 
-    public UserRepository(IDB db) {
+    public UserRepository(PostgresDB db) {
         this.db = db;
     }
 
-    @Override
-    public boolean register(User user) {
-        try (Connection con = db.getConnection();
-             PreparedStatement st = con.prepareStatement(
-                     "INSERT INTO users(name, password) VALUES (?, ?)")) {
-
-            st.setString(1, user.getname());
-            st.setString(2, user.getPassword());
-            st.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            return false;
-        }
-    }
-
-    @Override
-    public User getUser(int id) {
-        try (Connection con = db.getConnection();
-             PreparedStatement st = con.prepareStatement(
-                     "SELECT id, name, password FROM users WHERE id=?")) {
-
-            st.setInt(1, id);
-            ResultSet rs = st.executeQuery();
-
-            if (rs.next()) {
-                return new User(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("password")
-                );
-            }
-        } catch (SQLException e) {
-        }
-        return null;
-    }
-
-    @Override
-    public List<User> getAllUsers() {
-        List<User> users = new ArrayList<>();
+    public User findByEmailAndPassword(String email, String password) {
+        String sql = """
+            SELECT u.id, u.name, u.email, u.password, r.id AS r_id, r.name AS r_name
+            FROM users u
+            JOIN roles r ON r.id = u.role_id
+            WHERE u.email = ? AND u.password = ?
+        """;
 
         try (Connection con = db.getConnection();
-             Statement st = con.createStatement();
-             ResultSet rs = st.executeQuery(
-                     "SELECT id, name, password FROM users")) {
+             PreparedStatement st = con.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                users.add(new User(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("password")
-                ));
-            }
-        } catch (SQLException e) {
-        }
-        return users;
-    }
-
-    @Override
-    public User login(String name, String password) {
-        try (Connection con = db.getConnection();
-             PreparedStatement st = con.prepareStatement(
-                     "SELECT id, name, password FROM users WHERE name=? AND password=?")) {
-
-            st.setString(1, name);
+            st.setString(1, email);
             st.setString(2, password);
-            ResultSet rs = st.executeQuery();
 
-            if (rs.next()) {
+            try (ResultSet rs = st.executeQuery()) {
+                if (!rs.next()) return null;
+
+                Role role = new Role(rs.getInt("r_id"), rs.getString("r_name"));
                 return new User(
                         rs.getInt("id"),
                         rs.getString("name"),
-                        rs.getString("password")
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        role
                 );
             }
         } catch (SQLException e) {
+            System.out.println("sql error: " + e.getMessage());
+            return null;
         }
-        return null;
     }
 }
