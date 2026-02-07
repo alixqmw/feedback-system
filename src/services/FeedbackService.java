@@ -29,7 +29,7 @@ public class FeedbackService {
         return repo.createFeedback(title.trim(), message.trim(), currentUser.id(), categoryId);
     }
 
-    public FullFeedbackDTO getFull(int feedbackId) {
+    public FullFeedbackDTO getFull(int feedbackId, UserDTO currentUser) {
         if (feedbackId <= 0) return null;
         return repo.getFullFeedbackDescription(feedbackId);
     }

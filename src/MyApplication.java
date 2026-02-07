@@ -1,93 +1,74 @@
-
-
 import controllers.interfaces.IUserController;
-import controllers.interfaces.ISomethingController;
+import controllers.interfaces.IFeedbackController;
 import menus.FeedbackMenu;
 import models.User;
 
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class MyApplication {
+
     private final Scanner scanner = new Scanner(System.in);
 
     private final IUserController userController;
-    private final ISomethingController feedbackController;
+    private final IFeedbackController feedbackController;
 
-    public MyApplication(IUserController controller, ISomethingController feedbackController) {
-        this.userController = controller;
+    public MyApplication(IUserController userController,
+                         IFeedbackController feedbackController) {
+        this.userController = userController;
         this.feedbackController = feedbackController;
     }
 
     private void mainMenu() {
         System.out.println();
-        System.out.println("Welcome to Feedback system app");
-        System.out.println("1. Login: ");
-        System.out.println("2. Register: ");
-        /*System.out.println("2. Get user by id");
-        System.out.println("3. Create user");*/
+        System.out.println("Welcome to Feedback System App");
+        System.out.println("1. Login");
+        System.out.println("2. Register");
         System.out.println("0. Exit");
-        System.out.println();
-        System.out.print("Enter option (1-2): ");
+        System.out.print("Enter option: ");
     }
 
     public void start() {
         while (true) {
             mainMenu();
-            try {
-                int option = scanner.nextInt();
+            String choice = scanner.nextLine();
 
-                switch (option) {
-                    case 1: loginMenu(); break;
-                    case 2: registerMenu(); break;
-                    default: return;
+            switch (choice) {
+                case "1" -> loginMenu();
+                case "2" -> registerMenu();
+                case "0" -> {
+                    System.out.println("Goodbye!");
+                    scanner.close();
+                    return;
                 }
-            } catch (InputMismatchException e) {
-                System.out.println("Input must be integer: " + e);
-                scanner.nextLine(); // to ignore incorrect input
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
+                default -> System.out.println("Invalid option. Please try again.");
             }
 
             System.out.println("*************************");
         }
     }
 
-    public void getAllUsersMenu() {
-        String response = userController.getAllUsers();
-        System.out.println(response);
-    }
+    private void registerMenu() {
+        System.out.print("Enter name: ");
+        String name = scanner.nextLine();
 
-    public void getUserByIdMenu() {
-        System.out.println("Please enter id");
-
-        int id = scanner.nextInt();
-
-        String response = userController.getUser(id);
-        System.out.println(response);
-    }
-
-    public void registerMenu() {
-        System.out.println("Please enter name");
-        String name = scanner.next();
-        System.out.println("Please enter password");
-        String password = scanner.next();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
 
         String response = userController.register(name, password);
         System.out.println(response);
     }
 
-    public void loginMenu() {
-        System.out.println("Please enter name:");
-        String name = scanner.next();
+    private void loginMenu() {
+        System.out.print("Enter name: ");
+        String name = scanner.nextLine();
 
-        System.out.println("Please enter password:");
-        String password = scanner.next();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
 
         User user = userController.login(name, password);
 
         if (user == null) {
-            System.out.println("Login failed. User not found.");
+            System.out.println("Login failed. Invalid credentials.");
             return;
         }
 
