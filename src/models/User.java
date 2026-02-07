@@ -1,7 +1,7 @@
 package models;
 
 public class User {
-    private final int id;
+    private int id = 0;
     private final String name;
     private final String email;
     private final String password;
@@ -14,6 +14,7 @@ public class User {
         this.password = password;
         this.role = role;
     }
+
 
     public int getId() { return id; }
     public String getName() { return name; }
