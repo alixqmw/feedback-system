@@ -33,7 +33,7 @@ public class Main {
         System.out.println("Comment added: " + c1);
 
         // get full feedback (JOIN)
-        FullFeedbackDTO full = feedbackService.getFull(newId);
+        FullFeedbackDTO full = feedbackService.getFull(newId, user);
         System.out.println("\nFULL FEEDBACK:");
         System.out.println(full);
 
@@ -50,7 +50,7 @@ public class Main {
         System.out.println("ADMIN change status result: " + statusAdmin);
 
         // reload full
-        FullFeedbackDTO full2 = feedbackService.getFull(newId);
+        FullFeedbackDTO full2 = feedbackService.getFull(newId, user);
         System.out.println("\nUPDATED FULL FEEDBACK:");
         System.out.println(full2);
 

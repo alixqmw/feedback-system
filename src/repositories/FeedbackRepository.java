@@ -165,4 +165,7 @@ public class FeedbackRepository {
             return null;
         }
     }
+
+    private class PostgresDB {
+    }
 }
