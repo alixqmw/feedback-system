@@ -10,14 +10,12 @@ import java.util.List;
 
 public class FeedbackRepository {
 
-    private final PostgresDB db;
+    private final IDB db;
 
-    public FeedbackRepository(PostgresDB db) {
+    public FeedbackRepository(IDB db) {
         this.db = db;
     }
 
-    public FeedbackRepository(data.PostgresDB db) {
-    }
 
 
     public int createFeedback(String title, String message, int userId, int categoryId) {

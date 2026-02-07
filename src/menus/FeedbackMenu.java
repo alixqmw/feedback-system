@@ -20,7 +20,7 @@ public class FeedbackMenu {
 
     private void menu() {
         System.out.println();
-        System.out.println("Welcome, " + user.getname());
+        System.out.println("Welcome, " + user.getName());
         System.out.println("1. Select Something");
         System.out.println("2. Logout");
         System.out.print("Enter option(1-2): ");

@@ -11,7 +11,7 @@ public class Main {
         PostgresDB db = PostgresDB.getInstance(
                 "jdbc:postgresql://localhost:5432/feedback_db",
                 "postgres",
-                "postgres"
+                "0000"
         );
 
         UserRepository userRepo = new UserRepository(db);
