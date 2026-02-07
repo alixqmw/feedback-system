@@ -1,6 +1,7 @@
 package repositories;
 
-import db.PostgresDB;
+import data.PostgresDB;
+import data.interfaces.IDB;
 import dto.*;
 
 import java.sql.*;
@@ -8,11 +9,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FeedbackRepository {
+
     private final PostgresDB db;
 
     public FeedbackRepository(PostgresDB db) {
         this.db = db;
     }
+
+    public FeedbackRepository(data.PostgresDB db) {
+    }
+
 
     public int createFeedback(String title, String message, int userId, int categoryId) {
         String sql = """
@@ -166,6 +172,9 @@ public class FeedbackRepository {
         }
     }
 
-    private class PostgresDB {
+    public class PostgresDB {
+        public Connection getConnection() throws SQLException {
+            return null;
+        }
     }
 }
