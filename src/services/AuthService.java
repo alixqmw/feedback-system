@@ -22,5 +22,8 @@ public class AuthService {
                 user.getRole().getName()
         );
     }
-}
 
+    public boolean register(String name, String email, String password) {
+        return userRepo.createUser(name, email, password);
+    }
+}

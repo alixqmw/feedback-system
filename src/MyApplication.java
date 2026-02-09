@@ -1,99 +1,99 @@
+import data.PostgresDB;
+import dto.FullFeedbackDTO;
+import dto.UserDTO;
+import repositories.FeedbackRepository;
+import repositories.UserRepository;
+import services.AuthService;
+import services.FeedbackService;
 
-
-import controllers.interfaces.IUserController;
-import controllers.interfaces.ISomethingController;
-import menus.FeedbackMenu;
-import models.User;
-
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class MyApplication {
-    private final Scanner scanner = new Scanner(System.in);
 
-    private final IUserController userController;
-    private final ISomethingController feedbackController;
+    private static final Scanner sc = new Scanner(System.in);
 
-    public MyApplication(IUserController controller, ISomethingController feedbackController) {
-        this.userController = controller;
-        this.feedbackController = feedbackController;
-    }
+    private static UserDTO currentUser = null;
+    private static Integer lastFeedbackId = null;
 
-    private void mainMenu() {
-        System.out.println();
-        System.out.println("Welcome to Feedback system app");
-        System.out.println("1. Login: ");
-        System.out.println("2. Register: ");
-        /*System.out.println("2. Get user by id");
-        System.out.println("3. Create user");*/
-        System.out.println("0. Exit");
-        System.out.println();
-        System.out.print("Enter option (1-2): ");
-    }
+    public static void main(String[] args) {
 
-    public void start() {
+        PostgresDB db = PostgresDB.getInstance(
+                "jdbc:postgresql://localhost:5432/feedback_system",
+                "postgres",
+                "0000"
+        );
+
+        AuthService auth = new AuthService(new UserRepository(db));
+        FeedbackService feedbackService = new FeedbackService(new FeedbackRepository(db));
+
         while (true) {
-            mainMenu();
-            try {
-                int option = scanner.nextInt();
+            System.out.println("\n0-Register | 1-Login | 2-Feedback | 3-Comment | 4-View | 5-Logout | 6-Exit");
+            System.out.print("> ");
+            String opt = sc.nextLine();
 
-                switch (option) {
-                    case 1: loginMenu(); break;
-                    case 2: registerMenu(); break;
-                    default: return;
+            switch (opt) {
+
+                case "0" -> {
+                    System.out.print("Name: ");
+                    String name = sc.nextLine();
+                    System.out.print("Email: ");
+                    String email = sc.nextLine();
+                    System.out.print("Password: ");
+                    String pass = sc.nextLine();
+
+                    System.out.println(auth.register(name, email, pass)
+                            ? "User created"
+                            : "User not created");
                 }
-            } catch (InputMismatchException e) {
-                System.out.println("Input must be integer: " + e);
-                scanner.nextLine(); // to ignore incorrect input
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
+
+                case "1" -> {
+                    System.out.print("Email: ");
+                    String email = sc.nextLine();
+                    System.out.print("Password: ");
+                    String pass = sc.nextLine();
+
+                    currentUser = auth.login(email, pass);
+                    System.out.println(currentUser);
+                }
+
+                case "2" -> {
+                    if (currentUser == null) break;
+
+                    System.out.print("Title: ");
+                    String title = sc.nextLine();
+                    System.out.print("Message: ");
+                    String msg = sc.nextLine();
+                    System.out.print("Category id: ");
+                    int catId = Integer.parseInt(sc.nextLine());
+
+                    lastFeedbackId = feedbackService.createFeedback(currentUser, title, msg, catId);
+                    System.out.println("Feedback id = " + lastFeedbackId);
+                }
+
+                case "3" -> {
+                    if (currentUser == null || lastFeedbackId == null) break;
+
+                    System.out.print("Comment: ");
+                    String text = sc.nextLine();
+                    feedbackService.addComment(currentUser, lastFeedbackId, text);
+                }
+
+                case "4" -> {
+                    if (currentUser == null || lastFeedbackId == null) break;
+
+                    FullFeedbackDTO full = feedbackService.getFull(lastFeedbackId, currentUser);
+                    System.out.println(full);
+                }
+
+                case "5" -> {
+                    currentUser = null;
+                    lastFeedbackId = null;
+                }
+
+                case "6" -> {
+                    return;
+                }
             }
-
-            System.out.println("*************************");
         }
-    }
-
-    public void getAllUsersMenu() {
-        String response = userController.getAllUsers();
-        System.out.println(response);
-    }
-
-    public void getUserByIdMenu() {
-        System.out.println("Please enter id");
-
-        int id = scanner.nextInt();
-
-        String response = userController.getUser(id);
-        System.out.println(response);
-    }
-
-    public void registerMenu() {
-        System.out.println("Please enter name");
-        String name = scanner.next();
-        System.out.println("Please enter password");
-        String password = scanner.next();
-
-        String response = userController.register(name, password);
-        System.out.println(response);
-    }
-
-    public void loginMenu() {
-        System.out.println("Please enter name:");
-        String name = scanner.next();
-
-        System.out.println("Please enter password:");
-        String password = scanner.next();
-
-        User user = userController.login(name, password);
-
-        if (user == null) {
-            System.out.println("Login failed. User not found.");
-            return;
-        }
-
-        System.out.println("Login successful!");
-
-        FeedbackMenu feedbackMenu = new FeedbackMenu(user, feedbackController);
-        feedbackMenu.start();
     }
 }
