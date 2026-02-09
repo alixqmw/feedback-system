@@ -6,10 +6,13 @@ import repositories.UserRepository;
 import services.AuthService;
 import services.FeedbackService;
 
+import java.util.Scanner;
+
 public class Main {
+
     public static void main(String[] args) {
         PostgresDB db = PostgresDB.getInstance(
-                "jdbc:postgresql://localhost:5432/feedback_db",
+                "jdbc:postgresql://localhost:5432/feedback_system",
                 "postgres",
                 "0000"
         );
@@ -20,42 +23,128 @@ public class Main {
         AuthService auth = new AuthService(userRepo);
         FeedbackService feedbackService = new FeedbackService(feedbackRepo);
 
-        // login as normal user
-        UserDTO user = auth.login("user1@mail.com", "1234");
-        System.out.println("Logged in: " + user);
+        Scanner sc = new Scanner(System.in);
 
-        // create feedback
-        int newId = feedbackService.createFeedback(user, "Login problem", "I cannot login sometimes", 1);
-        System.out.println("Created feedback id: " + newId);
+        UserDTO currentUser = null;
+        Integer lastFeedbackId = null;
 
-        // add comment
-        boolean c1 = feedbackService.addComment(user, newId, "Please fix ASAP");
-        System.out.println("Comment added: " + c1);
+        while (true) {
+            System.out.println("\n=== FEEDBACK SYSTEM ===");
+            System.out.println("Logged in: " + (currentUser == null ? "NO" : currentUser.email() + " (" + currentUser.role() + ")"));
+            System.out.println("Last feedback id: " + (lastFeedbackId == null ? "-" : lastFeedbackId));
 
-        // get full feedback (JOIN)
-        FullFeedbackDTO full = feedbackService.getFull(newId, user);
-        System.out.println("\nFULL FEEDBACK:");
-        System.out.println(full);
+            System.out.println("\nChoose the option (0-5):");
+            System.out.println("0 - Login");
+            System.out.println("1 - Make feedback");
+            System.out.println("2 - Add comment to last feedback");
+            System.out.println("3 - View full last feedback");
+            System.out.println("4 - Logout");
+            System.out.println("5 - Exit");
+            System.out.print("> ");
 
-        // try change status as USER (should fail)
-        boolean statusUser = feedbackService.changeStatus(user, newId, "DONE");
-        System.out.println("\nUSER change status result: " + statusUser);
+            String opt = sc.nextLine().trim();
 
-        // login as admin
-        UserDTO admin = auth.login("admin@mail.com", "1234");
-        System.out.println("\nLogged in: " + admin);
+            switch (opt) {
+                case "0" -> {
+                    if (currentUser != null) {
+                        System.out.println("Already logged in.");
+                        break;
+                    }
+                    System.out.print("Email: ");
+                    String email = sc.nextLine().trim();
 
-        // change status as ADMIN (should work)
-        boolean statusAdmin = feedbackService.changeStatus(admin, newId, "IN_PROGRESS");
-        System.out.println("ADMIN change status result: " + statusAdmin);
+                    System.out.print("Password: ");
+                    String password = sc.nextLine().trim();
 
-        // reload full
-        FullFeedbackDTO full2 = feedbackService.getFull(newId, user);
-        System.out.println("\nUPDATED FULL FEEDBACK:");
-        System.out.println(full2);
+                    currentUser = auth.login(email, password);
+                    System.out.println("Logged in: " + currentUser);
 
-        // lambda example
-        System.out.println("\nManager comments count: " + feedbackService.countManagerComments(full2));
+                    if (currentUser == null) {
+                        System.out.println("Login failed.");
+                    }
+                }
+
+                case "1" -> {
+                    if (currentUser == null) {
+                        System.out.println("Please login first (option 0).");
+                        break;
+                    }
+
+                    System.out.print("Title: ");
+                    String title = sc.nextLine().trim();
+
+                    System.out.print("Message: ");
+                    String message = sc.nextLine().trim();
+
+                    System.out.print("Category id: ");
+                    int categoryId;
+                    try {
+                        categoryId = Integer.parseInt(sc.nextLine().trim());
+                    } catch (NumberFormatException e) {
+                        System.out.println("Wrong category id.");
+                        break;
+                    }
+
+                    int id = feedbackService.createFeedback(currentUser, title, message, categoryId);
+                    System.out.println("Created feedback id: " + id);
+
+                    if (id > 0) lastFeedbackId = id;
+                    else System.out.println("Feedback was not created (check SQL error above).");
+                }
+
+                case "2" -> {
+                    if (currentUser == null) {
+                        System.out.println("Please login first (option 0).");
+                        break;
+                    }
+                    if (lastFeedbackId == null) {
+                        System.out.println("No feedback yet. Create feedback first (option 1).");
+                        break;
+                    }
+
+                    System.out.print("Comment text: ");
+                    String text = sc.nextLine().trim();
+                    if (text.isEmpty()) {
+                        System.out.println("Empty comment. Skipped.");
+                        break;
+                    }
+
+                    boolean ok = feedbackService.addComment(currentUser, lastFeedbackId, text);
+                    System.out.println("Comment added: " + ok);
+                }
+
+                case "3" -> {
+                    if (currentUser == null) {
+                        System.out.println("Please login first (option 0).");
+                        break;
+                    }
+                    if (lastFeedbackId == null) {
+                        System.out.println("No feedback yet. Create feedback first (option 1).");
+                        break;
+                    }
+
+                    FullFeedbackDTO full = feedbackService.getFull(lastFeedbackId, currentUser);
+                    System.out.println("\nFULL FEEDBACK:");
+                    System.out.println(full);
+
+                    if (full == null) {
+                        System.out.println("Full feedback is NULL (check SQL errors above).");
+                    }
+                }
+
+                case "4" -> {
+                    currentUser = null;
+                    lastFeedbackId = null;
+                    System.out.println("Logged out.");
+                }
+
+                case "5" -> {
+                    System.out.println("Bye!");
+                    return;
+                }
+
+                default -> System.out.println("Unknown option. Choose 0-5.");
+            }
+        }
     }
 }
-
