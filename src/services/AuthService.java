@@ -1,48 +1,29 @@
-package repositories;
+package services;
 
-import data.PostgresDB;
-import models.Role;
+import dto.UserDTO;
 import models.User;
+import repositories.UserRepository;
 
-import java.sql.*;
+public class AuthService {
+    private final UserRepository userRepo;
 
-public class UserRepository {
-    private final PostgresDB db;
-
-    public UserRepository(PostgresDB db) {
-        this.db = db;
+    public AuthService(UserRepository userRepo) {
+        this.userRepo = userRepo;
     }
 
-    public User findByEmailAndPassword(String email, String password) {
-        String sql = """
-                SELECT u.id, u.name, u.email, u.password, r.id AS r_id, r.name AS r_name
-                FROM users u
-                JOIN roles r ON r.id = u.role_id
-                WHERE u.email = ? AND u.password = ?
-            """;
+    public UserDTO login(String email, String password) {
+        User user = userRepo.findByEmailAndPassword(email, password);
+        if (user == null) return null;
 
-        try (Connection con = db.getConnection();
-             PreparedStatement st = con.prepareStatement(sql)) {
+        return new UserDTO(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole().getName()
+        );
+    }
 
-            st.setString(1, email);
-            st.setString(2, password);
-
-            try (ResultSet rs = st.executeQuery()) {
-                if (!rs.next()) return null;
-
-                Role role = new Role(rs.getInt("r_id"), rs.getString("r_name"));
-                return new User(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        role
-                );
-            }
-        } catch (SQLException e) {
-            System.out.println("sql error: " + e.getMessage());
-            return null;
-        }
+    public boolean register(String name, String email, String password) {
+        return userRepo.createUser(name, email, password);
     }
 }
-
