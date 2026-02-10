@@ -33,23 +33,40 @@ public class Main {
             System.out.println("Logged in: " + (currentUser == null ? "NO" : currentUser.email() + " (" + currentUser.role() + ")"));
             System.out.println("Last feedback id: " + (lastFeedbackId == null ? "-" : lastFeedbackId));
 
-            System.out.println("\nChoose the option (0-5):");
-            System.out.println("0 - Login");
-            System.out.println("1 - Make feedback");
-            System.out.println("2 - Add comment to last feedback");
-            System.out.println("3 - View full last feedback");
-            System.out.println("4 - Logout");
-            System.out.println("5 - Exit");
+            System.out.println("\nChoose the option (0-6):");
+            System.out.println("0 - Create user");
+            System.out.println("1 - Login");
+            System.out.println("2 - Make feedback");
+            System.out.println("3 - Add comment to last feedback");
+            System.out.println("4 - View full last feedback");
+            System.out.println("5 - Logout");
+            System.out.println("6 - Exit");
             System.out.print("> ");
 
             String opt = sc.nextLine().trim();
 
             switch (opt) {
+
                 case "0" -> {
+                    System.out.print("Name: ");
+                    String name = sc.nextLine().trim();
+
+                    System.out.print("Email: ");
+                    String email = sc.nextLine().trim();
+
+                    System.out.print("Password: ");
+                    String password = sc.nextLine().trim();
+
+                    boolean created = auth.register(name, email, password); // <-- если метод иначе, поменяй тут
+                    System.out.println(created ? "User created!" : "User was not created.");
+                }
+
+                case "1" -> {
                     if (currentUser != null) {
                         System.out.println("Already logged in.");
                         break;
                     }
+
                     System.out.print("Email: ");
                     String email = sc.nextLine().trim();
 
@@ -59,14 +76,12 @@ public class Main {
                     currentUser = auth.login(email, password);
                     System.out.println("Logged in: " + currentUser);
 
-                    if (currentUser == null) {
-                        System.out.println("Login failed.");
-                    }
+                    if (currentUser == null) System.out.println("Login failed.");
                 }
 
-                case "1" -> {
+                case "2" -> {
                     if (currentUser == null) {
-                        System.out.println("Please login first (option 0).");
+                        System.out.println("Please login first (option 1).");
                         break;
                     }
 
@@ -92,13 +107,13 @@ public class Main {
                     else System.out.println("Feedback was not created (check SQL error above).");
                 }
 
-                case "2" -> {
+                case "3" -> {
                     if (currentUser == null) {
-                        System.out.println("Please login first (option 0).");
+                        System.out.println("Please login first (option 1).");
                         break;
                     }
                     if (lastFeedbackId == null) {
-                        System.out.println("No feedback yet. Create feedback first (option 1).");
+                        System.out.println("No feedback yet. Create feedback first (option 2).");
                         break;
                     }
 
@@ -113,13 +128,13 @@ public class Main {
                     System.out.println("Comment added: " + ok);
                 }
 
-                case "3" -> {
+                case "4" -> {
                     if (currentUser == null) {
-                        System.out.println("Please login first (option 0).");
+                        System.out.println("Please login first (option 1).");
                         break;
                     }
                     if (lastFeedbackId == null) {
-                        System.out.println("No feedback yet. Create feedback first (option 1).");
+                        System.out.println("No feedback yet. Create feedback first (option 2).");
                         break;
                     }
 
@@ -127,25 +142,22 @@ public class Main {
                     System.out.println("\nFULL FEEDBACK:");
                     System.out.println(full);
 
-                    if (full == null) {
-                        System.out.println("Full feedback is NULL (check SQL errors above).");
-                    }
-                }
-
-                case "4" -> {
-                    currentUser = null;
-                    lastFeedbackId = null;
-                    System.out.println("Logged out.");
+                    if (full == null) System.out.println("Full feedback is NULL (check SQL errors above).");
                 }
 
                 case "5" -> {
-                    System.out.println("Bye!");
+                    currentUser = null;
+                    lastFeedbackId = null;
+                    System.out.println("We are waiting for your next feedback.");
+                }
+
+                case "6" -> {
+                    System.out.println("Bye:)");
                     return;
                 }
 
-                default -> System.out.println("Unknown option. Choose 0-5.");
+                default -> System.out.println("Unknown option. Choose 0-6.");
             }
         }
     }
 }
-
