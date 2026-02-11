@@ -148,11 +148,11 @@ public class Main {
                 case "5" -> {
                     currentUser = null;
                     lastFeedbackId = null;
-                    System.out.println("We are waiting for your next feedback.");
+                    System.out.println("Logged out.");
                 }
 
                 case "6" -> {
-                    System.out.println("Bye:)");
+                    System.out.println("Bye!");
                     return;
                 }
 

@@ -25,7 +25,7 @@ public class PostgresDB implements IDB {
         return instance;
     }
 
-    public Connection getConnection() {
+    public Connection getConnection() throws SQLException {
         try {
             return DriverManager.getConnection(url, user, password);
         } catch (SQLException e) {

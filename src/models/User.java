@@ -1,20 +1,23 @@
 package models;
 
 public class User {
-    private int id = 0;
-    private final String name;
-    private final String email;
-    private final String password;
-    private final Role role;
+    private int id;
+    private String name;
+    private String email;
+    private String password;
+    private Role role;
 
-    public User(int id, String name, String email, String password, Role role) {
-        this.id = id;
+    public User(String name, String password) {
         this.name = name;
-        this.email = email;
         this.password = password;
-        this.role = role;
     }
 
+    public User(int id, String name, String email, String password, Role role) {
+        this(name, password);
+        this.id = id;
+        this.email = email;
+        this.role = role;
+    }
 
     public int getId() { return id; }
     public String getName() { return name; }

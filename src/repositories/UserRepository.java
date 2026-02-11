@@ -4,7 +4,10 @@ import data.PostgresDB;
 import models.Role;
 import models.User;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class UserRepository {
     private final PostgresDB db;
@@ -42,6 +45,28 @@ public class UserRepository {
         } catch (SQLException e) {
             System.out.println("sql error: " + e.getMessage());
             return null;
+        }
+    }
+
+    // Registration: creates user with USER role
+    public boolean createUser(String name, String email, String password) {
+        String sql = """
+            INSERT INTO users(name, email, password, role_id)
+            VALUES (?, ?, ?, (SELECT id FROM roles WHERE name = 'USER'))
+        """;
+
+        try (Connection con = db.getConnection();
+             PreparedStatement st = con.prepareStatement(sql)) {
+
+            st.setString(1, name);
+            st.setString(2, email);
+            st.setString(3, password);
+
+            return st.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println("sql error: " + e.getMessage());
+            return false;
         }
     }
 }
