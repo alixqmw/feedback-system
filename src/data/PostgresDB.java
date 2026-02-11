@@ -1,55 +1,40 @@
 package data;
 
 import data.interfaces.IDB;
-import java.sql.*;
+import repositories.FeedbackRepository;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class PostgresDB implements IDB {
-    private String host;
-    private String name;
-    private String password;
-    private String dbName;
-    private Connection connection;
+    private static PostgresDB instance;
 
-    public PostgresDB(String host, String name, String password, String dbName) {
-        setHost(host);
-        setname(name);
-        setPassword(password);
-        setDbName(dbName);
+    private final String url;
+    private final String user;
+    private final String password;
+
+    private PostgresDB(String url, String user, String password) {
+        this.url = url;
+        this.user = user;
+        this.password = password;
+    }
+
+    public static PostgresDB getInstance(String url, String user, String password) {
+        if (instance == null) instance = new PostgresDB(url, user, password);
+        return instance;
+    }
+
+    public Connection getConnection() throws SQLException {
+        try {
+            return DriverManager.getConnection(url, user, password);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public Connection getConnection() {
-        String connectionUrl = host + "/" + dbName;
-        try {
-            if (connection != null && !connection.isClosed()) {
-                return connection;
-            }
-            Class.forName("org.postgresql.Driver");
-            connection = DriverManager.getConnection(connectionUrl, name, password);
-            System.out.println(ANSI_CYAN + "[DB] Database connected successfully." + ANSI_RESET);
-            return connection;
-        } catch (Exception e) {
-            System.out.println(ANSI_RED + "Connection failed: " + e.getMessage() + ANSI_RESET);
-            return null;
-        }
-    }
-
-    public String getHost() { return host; }
-    public void setHost(String host) { this.host = host; }
-    public String password() { return name; }
-    public void setname(String name) { this.name = name; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-    public String getDbName() { return dbName; }
-    public void setDbName(String dbName) { this.dbName = dbName; }
-
     public void close() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException ex) {
-                System.out.println(ANSI_RED + "Close error: " + ex.getMessage() + ANSI_RESET);
-            }
-        }
+
     }
 }
