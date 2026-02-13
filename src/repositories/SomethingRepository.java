@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class SomethingRepository implements ISomethingRepository {
+public class SomethingRepository implements ISomethingRepository {
     private final IDB db;
 
     public SomethingRepository(IDB db) {
@@ -32,11 +32,9 @@ public abstract class SomethingRepository implements ISomethingRepository {
                 );
                 somethings.add(something);
             }
-
         } catch (SQLException e) {
-            System.out.println("sql error: " + e.getMessage());
+            System.out.println("SQL error: " + e.getMessage());
         }
-
         return somethings;
     }
 
@@ -47,18 +45,28 @@ public abstract class SomethingRepository implements ISomethingRepository {
 
     @Override
     public boolean deleteSomething(int id, String userRole) {
-        return false;
+        if (userRole == null || !userRole.equalsIgnoreCase("ADMIN")) {
+            System.out.println("Access denied!");
+            return false;
+        }
+
+        String sql = "DELETE FROM something WHERE id=?";
+        try (Connection con = db.getConnection();
+             PreparedStatement st = con.prepareStatement(sql)) {
+            st.setInt(1, id);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Delete error: " + e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public Something getSomething(int id) {
         String sql = "SELECT id, name, feedback FROM something WHERE id=?";
-
         try (Connection con = db.getConnection();
              PreparedStatement st = con.prepareStatement(sql)) {
-
             st.setInt(1, id);
-
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
                     return new Something(
@@ -68,28 +76,22 @@ public abstract class SomethingRepository implements ISomethingRepository {
                     );
                 }
             }
-
         } catch (SQLException e) {
-            System.out.println("sql error: " + e.getMessage());
+            System.out.println("Get error: " + e.getMessage());
         }
-
         return null;
     }
 
     @Override
     public boolean insertFeedback(String feedback, int id) {
         String sql = "UPDATE something SET feedback=? WHERE id=?";
-
         try (Connection con = db.getConnection();
              PreparedStatement st = con.prepareStatement(sql)) {
-
             st.setString(1, feedback);
             st.setInt(2, id);
-
             return st.executeUpdate() > 0;
-
         } catch (SQLException e) {
-            System.out.println("sql error: " + e.getMessage());
+            System.out.println("Update error: " + e.getMessage());
             return false;
         }
     }

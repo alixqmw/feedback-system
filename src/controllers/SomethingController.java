@@ -8,29 +8,40 @@ import java.util.List;
 public class SomethingController implements ISomethingController {
     private final ISomethingRepository repo;
 
-    public SomethingController(ISomethingRepository repo) { // Dependency Injection
+    public SomethingController(ISomethingRepository repo) {
         this.repo = repo;
     }
+
     public String insertFeedback(String feedback, int id) {
-        //Something something = new Something(name, feedback);
-
-        boolean created = repo.insertFeedback(feedback,id);
-
-        return (created ? "User was created!" : "User creation was failed!");
-    }
-    public String getAllSomethings() {
-        List<Something> Somethings = repo.getAllSomethings();
-
-        StringBuilder response = new StringBuilder();
-        for (Something Something : Somethings) {
-            response.append(Something.toString()).append("\n");
+        if (feedback == null || feedback.trim().isEmpty()) {
+            return "Feedback is empty";
         }
-
-        return response.toString();
+        boolean ok = repo.insertFeedback(feedback, id);
+        return (ok ? "Success" : "Failed");
     }
-    public String getSomething(int id) {
-        Something Something = repo.getSomething(id);
 
-        return (Something == null ? "User was not found!" : Something.toString());
+    public String getAllSomethings() {
+        List<Something> somethings = repo.getAllSomethings();
+        if (somethings.isEmpty()) return "No data";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("\nID | Name | Feedback\n");
+        sb.append("--------------------\n");
+
+        for (Something s : somethings) {
+            String fb = (s.getFeedback() == null) ? "-" : s.getFeedback();
+            sb.append(String.format("%d | %s | %s\n", s.getId(), s.getName(), fb));
+        }
+        return sb.toString();
+    }
+
+    public String getSomething(int id) {
+        Something s = repo.getSomething(id);
+        return (s == null ? "Not found" : s.toString());
+    }
+
+    public String deleteSomething(int id, String role) {
+        boolean ok = repo.deleteSomething(id, role);
+        return (ok ? "Deleted" : "Error");
     }
 }
